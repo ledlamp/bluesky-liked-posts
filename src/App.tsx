@@ -108,7 +108,7 @@ function App() {
               id="profile-handle"
               type="text"
               name="handle"
-              placeholder="jesopo.bsky.social"
+              placeholder="username.bsky.social"
               value={profileHandle}
               onChange={(ev) => setProfileHandle(ev.target.value)}
             />
