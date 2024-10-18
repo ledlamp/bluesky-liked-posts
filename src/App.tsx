@@ -8,17 +8,13 @@ import { DEFAULT_SERVICE, WEB_APP } from './utils/constants'
 import './App.css'
 
 function App() {
-  const initialProfileHandle = useMemo(() => {
-    let searchParams = new URLSearchParams(location.search)
-    if (searchParams.has('defaultUser')) {
-      return searchParams.get('defaultUser')!
-    }
-    return ''
-  }, [])
+  const urlParams = useMemo(() => {
+    return new URLSearchParams(location.hash.slice(1))
+  }, [location.hash])
 
   const [isLoading, setIsLoading] = useState(false)
-  const [profileHandle, setProfileHandle] = useState(initialProfileHandle)
-  const [service, setService] = useState(DEFAULT_SERVICE)
+  const [profileHandle, setProfileHandle] = useState(urlParams.get('handle') || '')
+  const [service, setService] = useState(urlParams.get('service') || DEFAULT_SERVICE)
   const [error, setError] = useState(null)
   const [likes, setLikes] = useState<Like[]>([])
   const [cursor, setCursor] = useState<string | undefined>(undefined)
@@ -27,7 +23,7 @@ function App() {
     setError(null)
 
     return fetchLikedPosts({
-      service,
+      service: service || DEFAULT_SERVICE,
       handle: profileHandle.toLowerCase().replace(/^@/, ''),
       cursor,
     })
@@ -48,6 +44,10 @@ function App() {
 
   const onSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+
+    let queryString = `handle=${encodeURIComponent(profileHandle)}`;
+    if (service != DEFAULT_SERVICE) queryString += `&service=${encodeURIComponent(service)}`;
+    location.hash = queryString;
 
     setIsLoading(true)
     load().then(() => {
@@ -78,6 +78,13 @@ function App() {
       window.removeEventListener('scroll', onScroll)
     }
   }, [cursor])
+
+  useEffect(() => {
+    if (profileHandle) {
+      setIsLoading(true)
+      load().then(() => setIsLoading(false))
+    }
+  }, [])
 
   return (
     <>
